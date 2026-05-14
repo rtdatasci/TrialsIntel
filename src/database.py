@@ -21,43 +21,49 @@ CREATE TABLE IF NOT EXISTS trials (
 """
 
 
-def _get_conn(conn=None) -> sqlite3.Connection:
+def _get_conn(conn=None) -> tuple[sqlite3.Connection, bool]:
+    """Return (connection, owned) where owned=True means caller must close it."""
     if conn is not None:
-        return conn
+        return conn, False
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    return sqlite3.connect(str(DB_PATH))
+    return sqlite3.connect(str(DB_PATH)), True
 
 
 def init_db(conn=None) -> None:
     """Create SQLite database with trials table."""
-    c = _get_conn(conn)
-    c.execute(CREATE_TABLE_SQL)
-    c.commit()
-    if conn is None:
-        c.close()
+    c, owned = _get_conn(conn)
+    try:
+        c.execute(CREATE_TABLE_SQL)
+        c.commit()
+    finally:
+        if owned:
+            c.close()
 
 
 def save_trial(trial_data: dict, conn=None) -> None:
     """Insert or replace a trial into the database."""
-    c = _get_conn(conn)
-    c.execute("""
-        INSERT OR REPLACE INTO trials
-            (nct_id, title, summary, conditions, interventions, sponsor, phase, drug, disease, mechanism)
-        VALUES
-            (:nct_id, :title, :summary, :conditions, :interventions, :sponsor, :phase, :drug, :disease, :mechanism)
-    """, trial_data)
-    c.commit()
-    if conn is None:
-        c.close()
+    c, owned = _get_conn(conn)
+    try:
+        c.execute("""
+            INSERT OR REPLACE INTO trials
+                (nct_id, title, summary, conditions, interventions, sponsor, phase, drug, disease, mechanism)
+            VALUES
+                (:nct_id, :title, :summary, :conditions, :interventions, :sponsor, :phase, :drug, :disease, :mechanism)
+        """, trial_data)
+        c.commit()
+    finally:
+        if owned:
+            c.close()
 
 
 def get_all_trials(conn=None) -> pd.DataFrame:
     """Return all trials as a pandas DataFrame."""
-    c = _get_conn(conn)
-    df = pd.read_sql_query("SELECT * FROM trials", c)
-    if conn is None:
-        c.close()
-    return df
+    c, owned = _get_conn(conn)
+    try:
+        return pd.read_sql_query("SELECT * FROM trials", c)
+    finally:
+        if owned:
+            c.close()
 
 
 def search_trials(disease: Optional[str] = None, drug: Optional[str] = None,
@@ -74,11 +80,12 @@ def search_trials(disease: Optional[str] = None, drug: Optional[str] = None,
     if phase:
         query += " AND LOWER(phase) LIKE ?"
         params += [f"%{phase.lower()}%"]
-    c = _get_conn(conn)
-    df = pd.read_sql_query(query, c, params=params)
-    if conn is None:
-        c.close()
-    return df
+    c, owned = _get_conn(conn)
+    try:
+        return pd.read_sql_query(query, c, params=params)
+    finally:
+        if owned:
+            c.close()
 
 
 if __name__ == "__main__":
