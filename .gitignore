@@ -4,6 +4,8 @@
 # Data files (keep .gitkeep, ignore actual DB)
 data/*.db
 data/*.csv
+data/*.json
+*.stackdump
 
 # Python
 __pycache__/
