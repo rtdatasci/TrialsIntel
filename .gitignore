@@ -1,8 +1,7 @@
 # Environment
 .env
 
-# Data files (keep .gitkeep, ignore actual DB)
-data/*.db
+# Data files
 data/*.csv
 data/*.json
 *.stackdump

@@ -12,6 +12,13 @@ st.set_page_config(
 st.title("🧬 TrialsIntel")
 st.markdown("*AI-powered clinical trial intelligence — powered by Claude + ClinicalTrials.gov*")
 
+st.info(
+    "⚠️ **Demo Mode** — This dashboard displays illustrative mock data to showcase the pipeline architecture. "
+    "In production, data is fetched from the real ClinicalTrials.gov API and entities are extracted using the Claude API. "
+    "Trial descriptions and entity labels are representative examples only.",
+    icon="🔬",
+)
+
 # Load data
 @st.cache_data
 def load_data() -> pd.DataFrame:
