@@ -2,6 +2,12 @@
 
 AI-powered clinical trial intelligence — fetch, analyze, and explore trials with Claude.
 
+## Live Demo
+
+**[trialsintel.streamlit.app](https://trialsintel.streamlit.app/)**
+
+Explore 25 realistic oncology and immunology mock trials — filter by disease, drug, or phase, and see entity extraction results powered by Claude AI. No setup required.
+
 ## Quick Start
 
 ```bash
